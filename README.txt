@@ -1,0 +1,8 @@
+- acessar https://script.google.com/
+- criar "Novo projeto"
+- colar código "formsTempoDasMulheres.gs" (abrir com Bloco de Notas)
+- clicar "Executar"
+- aguardar mensagem no "Registro de execução":
+    - Formulário gerado com sucesso!
+    - URL de edição (edite o Forms nesta URL)
+- o Forms pode demorar para carregar a página inicialmente
