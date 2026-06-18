@@ -1,513 +1,724 @@
 function generateFESPSPSurveyForm() {
-  // Auxiliar: converte array de strings em choices simples
+  // converte array de strings em choices simples
   function choices(item, labels) {
     return labels.map((label) => item.createChoice(label));
   }
 
+  // faixas de horas reutilizadas em várias perguntas
+  const options50 = [
+    "Zero",
+    "1-5",
+    "5-10",
+    "10-15",
+    "15-20",
+    "20-25",
+    "25-30",
+    "30-35",
+    "35-40",
+    "40-45",
+    "45-50",
+    ">50 horas",
+  ];
+
   const form = FormApp.create("Pesquisa: Como as Mulheres Vivem o Tempo");
 
-  // --- PÁGINA DE ENCERRAMENTO ---
-  const closeForm = form.addPageBreakItem().setTitle("Encerramento");
-  const headerEncerramento = form
-    .addSectionHeaderItem()
-    .setTitle("Este formulário não se aplica ao perfil buscado.");
+  // BLOCO 1: IDENTIFICAÇÃO
 
-  // --- BLOCO 1: IDENTIFICAÇÃO ---
-  // form.addPageBreakItem().setTitle("Bloco 1: Identificação");
+  form.addTextItem().setTitle("Código do formulário").setRequired(true);
+  form.addTextItem().setTitle("0. Pesquisadora responsável").setRequired(true);
+  form.addDateItem().setTitle("0.1. Data da coleta").setRequired(true);
+  form.addTextItem().setTitle("0.2. Ponto da coleta").setRequired(true);
 
-  form.addTextItem().setTitle("0. Código do formulário").setRequired(true);
+  // BLOCO 2: TRIAGEM
+
+  form.addPageBreakItem().setTitle("Bloco 2: Triagem Idade");
+
+  // Q1 - Idade (condicional)
+  const itemAge = form.addTextItem();
+
+  const validationAge = FormApp.createTextValidation()
+    .requireNumberBetween(20, 50)
+    .setHelpText("Se menor que 20 ou maior que 50, agradeça e encerre.")
+    .build();
+
+  itemAge
+    .setTitle("1. Quantos anos você tem?")
+    .setRequired(true)
+    .setValidation(validationAge);
+
+  form.addPageBreakItem().setTitle("Bloco 2: Triagem Cidade");
+
+  // Q2 - Mora em SP (condicional)
+  const q2 = form
+    .addMultipleChoiceItem()
+    .setTitle("2. Você mora na cidade de São Paulo?")
+    .setRequired(true);
+
+  q2.setChoices([
+    q2.createChoice("Sim", FormApp.PageNavigationType.CONTINUE),
+    q2.createChoice("Não", FormApp.PageNavigationType.SUBMIT),
+  ]);
+
+  // BLOCO 3: PERFIL SOCIODEMOGRÁFICO
+
+  form.addPageBreakItem().setTitle("Bloco 3: Perfil Sociodemográfico");
+
+  // Q3
+  const q3 = form
+    .addMultipleChoiceItem()
+    .setTitle("3. Em qual região da cidade de São Paulo você mora?")
+    .setRequired(true);
+  q3.setChoices(choices(q3, ["Norte", "Sul", "Leste", "Oeste", "Centro"]));
+
+  // Q4
   form
     .addTextItem()
-    .setTitle("0.1 Nome da pesquisadora responsável")
+    .setTitle("4. Qual o nome do bairro onde você mora?")
     .setRequired(true);
-  form.addDateItem().setTitle("0.2 Data da coleta").setRequired(true);
-  form.addTextItem().setTitle("0.3 Ponto da coleta").setRequired(true);
-  // form.addTextItem().setTitle("1. Qual é o seu nome?");
 
-  // --- BLOCO 2: TRIAGEM ---
-  form.addPageBreakItem().setTitle("Bloco 2: Triagem");
-
-  form.addTextItem().setTitle("2. Quantos anos você tem?").setRequired(true);
-
-  const q2b = form
-    .addMultipleChoiceItem()
-    .setTitle("2.1 Faixa etária")
-    .setHelpText("Se menor que 20 ou maior que 50, agradeça e encerre.")
-    .setRequired(true);
-  q2b.setChoices([
-    q2b.createChoice("Menos de 20 anos", closeForm),
-    q2b.createChoice("Entre 20 e 50 anos", FormApp.PageNavigationType.CONTINUE),
-    q2b.createChoice("Mais de 50 anos", closeForm),
-  ]);
-
-  form.addDateItem().setTitle("3. Qual é a sua data de nascimento?");
-
-  const q4 = form
-    .addMultipleChoiceItem()
-    .setTitle("4. Você mora na cidade de São Paulo?")
-    .setHelpText("Se Não, encerre.")
-    .setRequired(true);
-  q4.setChoices([
-    q4.createChoice("Sim", FormApp.PageNavigationType.CONTINUE),
-    q4.createChoice("Não", closeForm),
-  ]);
-
-  // --- BLOCO 2: PERFIL SOCIODEMOGRÁFICO ---
-  form.addPageBreakItem().setTitle("Bloco 2: Perfil Sociodemográfico");
-
+  // Q5 - Cor/raça
   const q5 = form
     .addMultipleChoiceItem()
-    .setTitle("5. Em qual região da cidade de São Paulo você mora?");
-  q5.setChoices(choices(q5, ["Norte", "Sul", "Leste", "Oeste", "Centro"]));
-
-  form.addTextItem().setTitle("6. Qual o nome do bairro onde você mora?");
-
-  const q7 = form.addMultipleChoiceItem().setTitle("7. Religião");
-  q7.setChoices(
-    choices(q7, [
-      "Católica",
-      "Evangélica Neo-pentecostal",
-      "Protestante",
-      "Espírita/ Kardecista/ Espiritualista",
-      "Umbanda",
-      "Candomblé/ outras afro-brasileiras",
-      "Não tem religião",
-      "Agnóstico",
-      "Ateu",
-      "Outra",
+    .setTitle("5. Sua cor ou raça é:")
+    .setRequired(true);
+  q5.setChoices(
+    choices(q5, [
+      "Branca",
+      "Preta",
+      "Parda",
+      "Amarela",
+      "Indígena",
+      "NS (não sabe)",
+      "NR (não respondeu)",
     ]),
   );
 
-  const q8 = form
+  // Q6 - Gênero
+  const q6 = form
     .addMultipleChoiceItem()
-    .setTitle("8. Qual é o seu estado civil?");
-  q8.setChoices(
-    choices(q8, [
-      "Solteira",
-      "Casada",
-      "Divorciada",
-      "Separada",
-      "Viúva",
-      "União estável",
-      "NS/NR",
+    .setTitle("6. Como você se identifica em relação ao seu gênero?")
+    .setHelpText("Ler definições entre parênteses apenas se necessário.")
+    .setRequired(true);
+  q6.setChoices(
+    choices(q6, [
+      "Mulher Cisgênero (pessoa que se identifica com o gênero feminino, atribuído no nascimento)",
+      "Mulher Transgênero (pessoa que se identifica como mulher, mas foi designada com outro gênero ao nascer)",
+      "Não Binário (pessoa cuja identidade de gênero não se encaixa exclusivamente como homem ou mulher)",
+      "Travesti (identidade de gênero historicamente construída por pessoas designadas homens ao nascer que vivem o gênero feminino de forma própria e política)",
     ]),
   );
 
-  // --- BLOCO 3: MATERNIDADE E FAMÍLIA ---
-  form.addPageBreakItem().setTitle("Bloco 3: Maternidade e Família");
-  const q9 = form.addMultipleChoiceItem().setTitle("9. Você têm filhos?");
+  // BLOCO 3: MATERNIDADE E FAMÍLIA
 
-  const s3_filhos = form
-    .addPageBreakItem()
-    .setTitle("Bloco 3.1: Detalhes sobre Filhos");
+  form.addPageBreakItem().setTitle("Bloco 3: Maternidade e Família");
+
+  // Q7 - Filhos
+  const q7 = form
+    .addMultipleChoiceItem()
+    .setTitle("7. Você têm filhos?")
+    .setRequired(true);
+  q7.setChoices(choices(q7, ["Sim", "Não"]));
+
+  // Q8 - Quantidade de filhos por faixa etária
   form
     .addGridItem()
-    .setTitle("10. Quantos filhos você possui em cada faixa etária?")
+    .setTitle("8. Quantos filhos você possui em cada faixa etária?")
+    .setHelpText("Marcar quantidade de filhos em cada box.")
     .setRows([
       "0 a 4 anos",
       "5 a 9 anos",
       "10 a 14 anos",
       "15 a 19 anos",
       "Mais de 19 anos",
+      "NA (não se aplica/não tenho filhos)",
     ])
-    .setColumns(["0", "1", "2", "3", "4+"]);
+    .setColumns(["0", "1", "2", "3", "4+", "NA"]);
 
-  const s3_idosos = form
-    .addPageBreakItem()
-    .setTitle("Bloco 3.2: Familiares e Moradia");
-  q9.setChoices([
-    q9.createChoice("Sim", FormApp.PageNavigationType.CONTINUE),
-    q9.createChoice("Não", s3_idosos),
-  ]);
-
-  const q11 = form
+  // Q9 - Idosos
+  const q9 = form
     .addMultipleChoiceItem()
-    .setTitle("11. Você têm familiares com mais de 60 anos/idosos vivos?");
-  q11.setChoices(choices(q11, ["Sim", "Não"]));
+    .setTitle("9. Você têm familiares com mais de 60 anos/idosos vivos?")
+    .setRequired(true);
+  q9.setChoices(choices(q9, ["Sim", "Não"]));
 
-  const q12 = form
-    .addMultipleChoiceItem()
-    .setTitle("12. Quantos familiares idosos vivos você tem?");
-  q12.setChoices(choices(q12, ["1", "2", "3", "4", "5", "6 ou mais", "NA"]));
-
+  // Q10 - Com quem mora
   form
     .addCheckboxItem()
-    .setTitle("13. Com quem você mora? (Múltipla seleção)")
+    .setTitle(
+      "10. Com quem você mora? (Marque todas as alternativas correspondentes, podendo ser mais de 1)",
+    )
     .setChoiceValues([
       "Sozinha",
-      "Companheira/o",
       "Filhos/as",
+      "Companheira/o",
       "Amigos/as",
       "Pais",
       "Outros familiares",
-    ]);
+    ])
+    .setRequired(true);
 
-  // --- BLOCO 4: ESTRUTURA DOMÉSTICA E RENDA ---
+  // BLOCO 4: ESTRUTURA DOMÉSTICA E RENDA
+
   form.addPageBreakItem().setTitle("Bloco 4: Estrutura Doméstica e Renda");
-  const q14 = form
-    .addMultipleChoiceItem()
-    .setTitle("14. Você possui empregada e/ou diarista?");
 
-  const s4_frequencia = form
-    .addPageBreakItem()
-    .setTitle("Bloco 4.1: Frequência de Serviço");
-
-  const q15 = form
+  // Q11 - Empregada/diarista
+  const q11 = form
     .addMultipleChoiceItem()
-    .setTitle("15. Com que frequência utiliza o serviço?");
-  q15.setChoices(
-    choices(q15, [
-      "1x semanal",
-      "2x por semana",
-      "4x por semana",
-      "5x por semana",
-      "6x por semana",
-      "7x por semana",
+    .setTitle(
+      "11. Você possui serviço de empregada e/ou diarista para a realização de tarefas domésticas?",
+    )
+    .setRequired(true);
+  q11.setChoices(
+    choices(q11, [
+      "Não",
+      "Sim, mensalmente",
+      "Sim, quinzenalmente",
+      "Sim, semanalmente",
+      "Sim, 2-3x por semana",
+      "Sim, diariamente",
+      "NS (não sabe)",
+      "NR (não respondeu)",
     ]),
   );
 
-  const s4_identidade = form
-    .addPageBreakItem()
-    .setTitle("Bloco 4.2: Identidade e Bens");
-  q14.setChoices([
-    q14.createChoice("Sim", FormApp.PageNavigationType.CONTINUE),
-    q14.createChoice("Não", s4_identidade),
-  ]);
-
-  const q16 = form
-    .addMultipleChoiceItem()
-    .setTitle("16. Como você se identifica em relação ao seu gênero?");
-  q16.setChoices(
-    choices(q16, [
-      "Mulher Cisgênero",
-      "Mulher Transgênero",
-      "Não Binário",
-      "Travesti",
-    ]),
-  );
-
-  const q17 = form.addMultipleChoiceItem().setTitle("17. Orientação Sexual");
-  q17.setChoices(
-    choices(q17, [
-      "Heterossexual",
-      "Lésbica",
-      "Bi-sexual",
-      "Assexual",
-      "Pansexual",
-      "NS/NR",
-    ]),
-  );
-
-  const q18 = form.addMultipleChoiceItem().setTitle("18. Cor ou raça");
-  q18.setChoices(
-    choices(q18, ["Branca", "Preta", "Parda", "Amarela", "Indígena"]),
-  );
-
+  // Q12 - Itens da casa
   form
     .addCheckboxItem()
-    .setTitle("19. Quais desses itens sua casa possui?")
+    .setTitle(
+      "12. Quais desses itens sua casa possui? (Assinale todas as alternativas correspondentes)",
+    )
     .setChoiceValues([
       "Máquina de lavar roupas",
       "Aspirador de pó",
       "Tanquinho",
     ]);
 
-  form
-    .addTextItem()
-    .setTitle("20. Rendimento bruto mensal (Valor)")
-    .setHelpText("Considere todas as fontes de renda.");
-
-  // --- BLOCO 5: EDUCAÇÃO E PERCEPÇÃO ---
-  form.addPageBreakItem().setTitle("Bloco 5: Educação e Percepção do Tempo");
-
-  const q21 = form
+  // Q13 - Renda familiar
+  const q13 = form
     .addMultipleChoiceItem()
-    .setTitle("21. Qual o curso mais elevado que concluiu anteriormente?");
-  q21.setChoices(
-    choices(q21, [
-      "Alfabetização",
-      "Primário",
-      "Ensino fundamental",
-      "Ensino Médio",
-      "Superior de graduação",
-      "Especialização",
-      "Mestrado",
-      "Doutorado",
-      "NS/NR",
+    .setTitle(
+      "13. Qual é a sua renda familiar? (Rendimento bruto mensal normalmente recebido pelo(s) responsável(is) pelo domicílio. Considere rendimentos de trabalho, aposentadoria, Bolsa Família ou outra origem.)",
+    )
+    .setRequired(true);
+  q13.setChoices(
+    choices(q13, [
+      "R$ 0 - 2.000",
+      "R$ 2.001 a 3.500",
+      "R$ 3.501 a 5.000",
+      "R$ 5.001 - 6.500",
+      "R$ 6.501 a 8.000",
+      "> R$ 8.000",
+      "NS (não sabe)",
+      "NR (não respondeu)",
     ]),
   );
 
+  // BLOCO 5: TRABALHO REMUNERADO
+
+  form.addPageBreakItem().setTitle("Bloco 5: Trabalho Remunerado");
+
+  // Q14 - múltipla seleção (CheckboxItem não suporta navegação condicional)
+  const q14 = form
+    .addCheckboxItem()
+    .setTitle(
+      "14. Nos últimos 7 dias, você realizou algum trabalho remunerado?",
+    )
+    .setHelpText(
+      "Marque todas as que correspondem ao trabalho realizado na última semana, podendo ser mais de 1 opção.",
+    )
+    .setRequired(true);
+  q14.setChoices(
+    choices(q14, [
+      "Não",
+      "Sim, trabalho formal com carteira assinada/CLT/PJ",
+      "Sim, trabalho informal, em atividade autônoma ou própria (ex: consultora de vendas em cosméticos e produtos para o lar, artesanato, costura, cuidadora de animais de estimação e etc)",
+      "NS (não sabe)",
+      "NR (não respondeu)",
+    ]),
+  );
+
+  // Q15 - não obrigatória (pular se respondeu Não na Q14)
+  const q15 = form
+    .addMultipleChoiceItem()
+    .setTitle("15. Em qual modalidade de trabalho?")
+    .setHelpText("Pular se respondeu Não na pergunta 14.")
+    .setRequired(false);
+  q15.setChoices(
+    choices(q15, [
+      "Presencial",
+      "Home office/teletrabalho",
+      "Híbrido (presencial alternado com teletrabalho)",
+      "NA (não se aplica/não trabalhou)",
+    ]),
+  );
+
+  // Q16 - não obrigatória (pular se respondeu Não na Q14)
+  const q16 = form
+    .addMultipleChoiceItem()
+    .setTitle(
+      "16. Nos últimos 7 dias, quantas horas você trabalhou de forma remunerada?",
+    )
+    .setHelpText("Pular se respondeu Não na pergunta 14.")
+    .setRequired(false);
+  q16.setChoices(
+    choices(q16, [
+      "Zero",
+      "1-10",
+      "10-20",
+      "20-30",
+      "30-40",
+      "40-50",
+      "50-60",
+      ">60 horas",
+    ]),
+  );
+
+  // Q17
+  const q17 = form
+    .addMultipleChoiceItem()
+    .setTitle(
+      "17. Se você não trabalhou na última semana, qual o motivo principal?",
+    )
+    .setRequired(true);
+  q17.setChoices(
+    choices(q17, [
+      "Necessidade de realizar afazeres domésticos",
+      "Cuidar de alguém (crianças, idosos, pessoas com deficiência)",
+      "Outros",
+      "NS (não sabe)",
+      "NR (não respondeu)",
+      "NA (não se aplica, pois trabalhou)",
+    ]),
+  );
+
+  // BLOCO 6: CUIDADOS PESSOAIS
+
+  form.addPageBreakItem().setTitle("Bloco 6: Cuidados Pessoais");
+
+  // Q18
+  const q18 = form
+    .addMultipleChoiceItem()
+    .setTitle(
+      "18. Nos últimos 7 dias, quantas horas você dedicou a dormir, incluindo cochilos?",
+    )
+    .setRequired(true);
+  q18.setChoices(
+    choices(q18, [
+      "Zero",
+      "1-10",
+      "10-20",
+      "20-30",
+      "30-40",
+      "40-50",
+      "50-60",
+      "60-70",
+      "70-80",
+      ">80 horas",
+    ]),
+  );
+
+  // Q19
+  const q19 = form
+    .addMultipleChoiceItem()
+    .setTitle(
+      "19. Nos últimos 7 dias, quantas horas você dedicou aos seus cuidados pessoais básicos, alimentar-se (refeições e lanches) e sua higiene/arrumação pessoal (banho, vestir-se, escovar os dentes, etc)?",
+    )
+    .setRequired(true);
+  q19.setChoices(options50.map((o) => q19.createChoice(o)));
+
+  // BLOCO 7: TRABALHO DOMÉSTICO NÃO REMUNERADO - NO PRÓPRIO DOMICÍLIO
+
+  form
+    .addPageBreakItem()
+    .setTitle(
+      "Bloco 7: Trabalho Doméstico Não Remunerado - No Próprio Domicílio",
+    );
+
+  // Q20
+  const q20 = form
+    .addMultipleChoiceItem()
+    .setTitle("20. Rotina Manual (Cozinha, Limpeza e Roupas)")
+    .setHelpText(
+      "Nos últimos 7 dias, quantas horas você dedicou às tarefas manuais de rotina e de limpeza em sua casa, como preparar alimentos, lavar louça, limpar a moradia e cuidar das roupas (lavar/passar/guardar), gestão e ao abastecimento da sua residência, como planejar e pagar contas, administrar o lar, pesquisar preços e fazer compras, cuidar de animais domésticos e plantas?",
+    )
+    .setRequired(true);
+  q20.setChoices(options50.map((o) => q20.createChoice(o)));
+
+  // Q21
+  const q21 = form
+    .addMultipleChoiceItem()
+    .setTitle("21. Manutenção (Reparos e consertos do lar)")
+    .setHelpText(
+      "Nos últimos 7 dias, quantas horas você dedicou a pequenos reparos na casa, em eletrodomésticos e equipamentos da sua residência?",
+    )
+    .setRequired(true);
+  q21.setChoices(options50.map((o) => q21.createChoice(o)));
+
+  // Q22
   const q22 = form
     .addMultipleChoiceItem()
     .setTitle(
-      "22. Atualmente você frequenta escola, faculdade ou curso técnico?",
-    );
-  q22.setChoices(
-    choices(q22, [
-      "Sim, presencial",
-      "Sim, à distância",
-      "Sim, híbrido",
-      "Não",
-    ]),
-  );
+      "22. Nos últimos 7 dias, quantas horas você dedicou a limpar, cozinhar, lavar, cuidar de animais de estimação e plantas FORA do seu DOMICÍLIO para PARENTES sem receber pagamento?",
+    )
+    .setRequired(true);
+  q22.setChoices(options50.map((o) => q22.createChoice(o)));
 
+  // Q23
   const q23 = form
     .addMultipleChoiceItem()
     .setTitle(
-      "23. Deixou de estudar na última semana para realizar afazeres domésticos ou cuidar de alguém?",
-    );
-  q23.setChoices(choices(q23, ["Sim", "Não", "NA"]));
+      "23. Nos últimos 7 dias, quantas horas você dedicou a limpar, cozinhar, lavar, cuidar de animais de estimação e plantas FORA do seu DOMICÍLIO para AMIGOS / VIZINHOS / TRABALHO VOLUNTÁRIO sem receber pagamento?",
+    )
+    .setRequired(true);
+  q23.setChoices(options50.map((o) => q23.createChoice(o)));
 
-  const q24 = form
+  // BLOCO 8: CUIDADO DIRETO
+
+  form
+    .addPageBreakItem()
+    .setTitle("Bloco 8: Cuidado Direto")
+    .setHelpText(
+      "Considerando todas as formas de cuidar - alimentar, banhar, medicar, brincar, ajudar nos estudos, planejar e agendar consultas e exames ou levar ao médico - responda as perguntas a seguir.",
+    );
+
+  // Q24
+  const subQ24 = [
+    { id: "24.1", label: "Crianças (0-14 anos) - No seu próprio domicílio" },
+    { id: "24.2", label: "Crianças (0-14 anos) - No domicílio de parentes" },
+    {
+      id: "24.3",
+      label:
+        "Crianças (0-14 anos) - Domicílios de vizinhos/comunidade/voluntariado",
+    },
+    {
+      id: "24.4",
+      label: "Adultos/adolescentes (15-59 anos) - No seu próprio domicílio",
+    },
+    {
+      id: "24.5",
+      label: "Adultos/adolescentes (15-59 anos) - No domicílio de parentes",
+    },
+    {
+      id: "24.6",
+      label:
+        "Adultos/adolescentes (15-59 anos) - Domicílios de vizinhos/comunidade/voluntariado",
+    },
+    { id: "24.7", label: "Idosos (60+) - No seu próprio domicílio" },
+    { id: "24.8", label: "Idosos (60+) - No domicílio de parentes" },
+    {
+      id: "24.9",
+      label: "Idosos (60+) - Domicílios de vizinhos/comunidade/voluntariado",
+    },
+    {
+      id: "24.10",
+      label:
+        "Pessoas com deficiência ou dependência permanente - No seu próprio domicílio",
+    },
+    {
+      id: "24.11",
+      label:
+        "Pessoas com deficiência ou dependência permanente - No domicílio de parentes",
+    },
+    {
+      id: "24.12",
+      label:
+        "Pessoas com deficiência ou dependência permanente - Domicílios de vizinhos/comunidade/voluntariado",
+    },
+  ];
+
+  subQ24.forEach(function (sub) {
+    const item = form
+      .addMultipleChoiceItem()
+      .setTitle(
+        sub.id +
+          ". Nos últimos 7 dias, quantas horas você dedicou a cuidar de: " +
+          sub.label +
+          "?",
+      )
+      .setRequired(true);
+    item.setChoices(options50.map((o) => item.createChoice(o)));
+  });
+
+  // BLOCO 9: ESTUDO
+
+  form.addPageBreakItem().setTitle("Bloco 9: Estudo");
+
+  // Q25
+  const q25 = form
     .addMultipleChoiceItem()
-    .setTitle("24. Como se sente em relação ao uso do seu tempo?");
-  q24.setChoices(
-    choices(q24, [
-      "Muito Insatisfeita",
-      "Insatisfeita",
-      "Nem satisfeita nem insatisfeita",
-      "Satisfeita",
-      "Muito satisfeita",
+    .setTitle(
+      "25. Atualmente você frequenta escola, faculdade ou curso técnico?",
+    )
+    .setHelpText("Assinalar apenas uma opção")
+    .setRequired(true);
+  q25.setChoices(
+    choices(q25, [
+      "Sim, de forma presencial",
+      "Sim, à distância",
+      "Sim, de forma híbrida (presencial alguns dias da semana, online em outros dias)",
+      "Não",
+      "NS (não sabe)",
+      "NR (não respondeu)",
     ]),
   );
 
-  const q25 = form
-    .addCheckboxItem()
+  // Q26
+  const q26 = form
+    .addMultipleChoiceItem()
     .setTitle(
-      "25. A quais das seguintes áreas você dedica mais tempo? (Escolha até 3)",
-    );
-  q25.setChoiceValues([
-    "Trabalho",
-    "Lazer",
-    "Cuidados Pessoais",
-    "Cuidados De Terceiros",
-    "Trajeto/Trânsito/Deslocamento",
-    "Família",
-    "Relacionamento Afetivo",
-    "Atividade Física",
-  ]);
-  q25.setValidation(
-    FormApp.createCheckboxValidation().requireSelectAtMost(3).build(),
-  );
+      "26. Nos últimos 7 dias, quantas horas você dedicou a frequentar aulas ou participar de algum curso (presencial ou online)?",
+    )
+    .setRequired(true);
+  q26.setChoices(options50.map((o) => q26.createChoice(o)));
 
-  // --- BLOCO 6: TRABALHO REMUNERADO ---
-  form.addPageBreakItem().setTitle("Bloco 6: Trabalho Remunerado");
-  form
-    .addCheckboxItem()
-    .setTitle("26. Realizou trabalho remunerado na última semana?")
-    .setChoiceValues([
-      "Não",
-      "Sim (CLT)",
-      "Sim (PJ)",
-      "Sim (Estágio)",
-      "Sim (Autônoma)",
-    ]);
-
+  // Q27
   const q27 = form
     .addMultipleChoiceItem()
-    .setTitle("27. Modalidade de trabalho");
-  q27.setChoices(choices(q27, ["Presencial", "Home office", "Híbrido", "NA"]));
+    .setTitle(
+      "27. Nos últimos 7 dias, FORA do horário de aula, quantas horas você dedicou a estudar em casa e executar tarefas relacionadas ao estudo?",
+    )
+    .setRequired(true);
+  q27.setChoices(options50.map((o) => q27.createChoice(o)));
 
+  // Q28
   const q28 = form
     .addMultipleChoiceItem()
     .setTitle(
-      "28. Se não trabalhou, o motivo foi afazeres domésticos/cuidado?",
-    );
-  q28.setChoices(choices(q28, ["Sim", "Não", "NA"]));
+      "28. Se você não frequentou a escola/curso ou não estudou em casa na última semana, qual o motivo principal?",
+    )
+    .setHelpText(
+      "Perguntar apenas para quem respondeu zero nas perguntas 26 ou 27",
+    )
+    .setRequired(false);
+  q28.setChoices(
+    choices(q28, [
+      "Necessidade de realizar afazeres domésticos",
+      "Cuidar de alguém (crianças, idosos, pessoas com deficiência)",
+      "Outros",
+      "NS (não sabe)",
+      "NR (não respondeu)",
+      "NA (não se aplica, pois não estudou)",
+    ]),
+  );
 
-  form
-    .addDurationItem()
-    .setTitle(
-      "29. Horas trabalhadas de forma remunerada na semana (Tempo Total)",
-    );
-  form
-    .addDurationItem()
-    .setTitle(
-      "30. MOBILIDADE: Tempo gasto em trajetos para o trabalho (Semanal)",
-    );
+  // BLOCO 10: MOBILIDADE
 
-  // --- BLOCO 7 E 8: TEMPOS DE CUIDADO E ROTINA ---
   form
     .addPageBreakItem()
-    .setTitle("Bloco 7 e 8: Cuidados Pessoais e Domésticos");
-  form
-    .addDurationItem()
-    .setTitle("31. Cuidados pessoais básicos (Dormir, comer, higiene)");
-  form
-    .addDurationItem()
-    .setTitle("32. Rotina Manual (Cozinha, Limpeza e Roupas)")
-    .setHelpText("Considere faxinas pesadas e preparo antecipado.");
-  form
-    .addDurationItem()
-    .setTitle(
-      "33. Gestão e Suprimento (Pagar contas, planejar gastos, compras)",
-    );
-  form
-    .addDurationItem()
-    .setTitle("34. Cuidado com Animais Domésticos e Plantas");
-  form
-    .addDurationItem()
-    .setTitle("35.1 Tarefas domésticas para PARENTES que NÃO moram com você");
-  form
-    .addDurationItem()
-    .setTitle(
-      "35.2 Tarefas domésticas na casa de AMIGOS/VIZINHOS (Voluntário)",
-    );
+    .setTitle("Bloco 10: Mobilidade para Trabalho e Estudo");
 
-  form
-    .addGridItem()
-    .setTitle("36. Matriz de Cuidado Direto (Horas Semanais)")
-    .setHelpText("Tempo dedicado a alimentar, banhar, medicar, brincar, etc.")
-    .setRows([
-      "Crianças (0-14)",
-      "Adultos/Adolescentes (15-59)",
-      "Idosos (60+)",
-      "PCD",
-    ])
-    .setColumns(["No seu próprio domicílio", "No domicílio de parentes"]);
-
-  form
-    .addDurationItem()
-    .setTitle("37.1 MOBILIDADE: Transportar pessoas do SEU domicílio");
-  form
-    .addDurationItem()
-    .setTitle("37.2 MOBILIDADE: Transportar pessoas de domicílio de PARENTES");
-  form
-    .addDurationItem()
-    .setTitle(
-      "39. CUIDADO PASSIVO: Tempo em condição de ALERTA enquanto faz outras atividades",
-    );
-
-  // --- BLOCO 9: LAZER, ESTUDO E RELIGIÃO ---
-  form.addPageBreakItem().setTitle("Bloco 9: Lazer, Estudo e Religião");
-  form.addDurationItem().setTitle("40. Frequentar aulas e cursos");
-  form.addDurationItem().setTitle("41. Estudar em casa e tarefas relacionadas");
-  form.addDurationItem().setTitle("42. MOBILIDADE: Trajetos para estudo");
-  form
-    .addDurationItem()
-    .setTitle("43. Conversar com amigos e familiares (Online ou presencial)");
-  form
-    .addDurationItem()
-    .setTitle("44. Assistir TV/Vídeos e ouvir Rádio/Podcast");
-
-  form
-    .addCheckboxItem()
-    .setTitle("45. Atividades simultâneas enquanto consome mídia")
-    .setChoiceValues([
-      "Não",
-      "Limpar a casa",
-      "Lavar/Passar",
-      "Cuidar de pessoas",
-      "Se deslocar",
-      "Outros",
-    ]);
-
-  form.addDurationItem().setTitle("46. Ler por lazer");
-  form
-    .addDurationItem()
-    .setTitle("47. Ócio (Ficar recostada/pensando sem outra atividade)");
-  form
-    .addDurationItem()
-    .setTitle("48. Religião: Cultos, missas e eventos (Incluindo traslado)");
-  form
-    .addDurationItem()
-    .setTitle("49. Exercícios e Atividades Físicas (Incluindo traslado)");
-
-  // --- BLOCO 10: AUTONOMIA E POLÍTICA ---
-  form.addPageBreakItem().setTitle("Bloco 10: Percepção, Autonomia e Política");
-
-  const q50 = form
+  // Q29
+  const q29 = form
     .addMultipleChoiceItem()
     .setTitle(
-      "50. Considera que faz mais do que lhe corresponde nas tarefas da casa?",
-    );
-  q50.setChoices(choices(q50, ["Sim", "Não", "NS/NR"]));
+      "29. Nos últimos 7 dias, quantas horas você gastou em trajetos e deslocamentos de ida e volta para o trabalho e estudos (escola/cursos/faculdade)?",
+    )
+    .setRequired(true);
+  q29.setChoices(options50.map((o) => q29.createChoice(o)));
 
-  const q51 = form
-    .addMultipleChoiceItem()
-    .setTitle("51. O tempo foi suficiente para realizar tudo o que precisava?");
-  q51.setChoices(choices(q51, ["Sim", "Não", "NS/NR"]));
+  // BLOCO 11: LAZER
 
-  const q52 = form
+  form.addPageBreakItem().setTitle("Bloco 11: Lazer");
+
+  // Q30
+  const q30 = form
     .addMultipleChoiceItem()
-    .setTitle("52. Quem geralmente decide sobre grandes gastos no domicílio?");
-  q52.setChoices(
-    choices(q52, [
+    .setTitle(
+      "30. Nos últimos 7 dias, quantas horas você dedicou a conversar com amigos, filhos, familiares (seja online ou pessoalmente)?",
+    )
+    .setRequired(true);
+  q30.setChoices(options50.map((o) => q30.createChoice(o)));
+
+  // Q31
+  const q31 = form
+    .addMultipleChoiceItem()
+    .setTitle(
+      "31. Nos últimos 7 dias, quantas horas você dedicou a assistir TV/vídeos, ouvir rádio/podcast/música e ler por lazer?",
+    )
+    .setRequired(true);
+  q31.setChoices(options50.map((o) => q31.createChoice(o)));
+
+  // BLOCO 12: ÓCIO
+
+  form.addPageBreakItem().setTitle("Bloco 12: Ócio");
+
+  // Q32
+  const q32 = form
+    .addMultipleChoiceItem()
+    .setTitle(
+      "32. Nos últimos 7 dias, quantas horas você ficou recostada ou sentada, pensando ou refletindo sem fazer nenhuma outra atividade?",
+    )
+    .setRequired(true);
+  q32.setChoices(options50.map((o) => q32.createChoice(o)));
+
+  // BLOCO 13: RELIGIÃO
+
+  form.addPageBreakItem().setTitle("Bloco 13: Religião");
+
+  // Q33
+  const q33 = form
+    .addMultipleChoiceItem()
+    .setTitle(
+      "33. Nos últimos 7 dias, quantas horas você dedicou a participar de cultos, missas, sessão, gira e/ou eventos religiosos, contando o deslocamento?",
+    )
+    .setRequired(true);
+  q33.setChoices(options50.map((o) => q33.createChoice(o)));
+
+  // BLOCO 14: EXERCÍCIOS E ATIVIDADES FÍSICAS
+
+  form.addPageBreakItem().setTitle("Bloco 14: Exercícios e Atividades Físicas");
+
+  // Q34
+  const q34 = form
+    .addMultipleChoiceItem()
+    .setTitle(
+      "34. Nos últimos 7 dias, quantas horas você dedicou a praticar livremente algum esporte, dançar, fazer yoga, exercício físico ou ir à academia, somando o tempo de deslocamento?",
+    )
+    .setRequired(true);
+  q34.setChoices(options50.map((o) => q34.createChoice(o)));
+
+  // BLOCO 15: AUTONOMIA
+
+  form.addPageBreakItem().setTitle("Bloco 15: Autonomia");
+
+  // Q35
+  const q35 = form
+    .addMultipleChoiceItem()
+    .setTitle("35. Quem geralmente decide sobre grandes gastos no domicílio?")
+    .setRequired(true);
+  q35.setChoices(
+    choices(q35, [
       "Somente você",
-      "Você e parceiro(a)",
-      "Somente parceiro(a)",
-      "Outro homem da família",
-      "Outra mulher da família",
+      "Você e seu(a) parceiro(a)",
+      "Somente seu(a) parceiro(a)",
+      "Outro membro da família homem",
+      "Outro membro da família mulher",
+      "Você e outro membro da família",
+      "NS (não sabe)",
+      "NR (não respondeu)",
     ]),
   );
 
-  const q53 = form
+  // Q36
+  const q36 = form
     .addMultipleChoiceItem()
-    .setTitle("53. Quem decide sobre se você pode trabalhar fora?");
-  q53.setChoices(
-    choices(q53, [
+    .setTitle("36. Quem geralmente decide sobre se você pode trabalhar fora?")
+    .setRequired(true);
+  q36.setChoices(
+    choices(q36, [
       "Somente você",
-      "Você e parceiro(a)",
-      "Somente parceiro(a)",
-      "Outro homem",
-      "Outra mulher",
+      "Você e seu(a) parceiro(a)",
+      "Somente seu(a) parceiro(a)",
+      "Outro membro da família homem",
+      "Outro membro da família mulher",
+      "Você e outro membro da família",
+      "NS (não sabe)",
+      "NR (não respondeu)",
     ]),
   );
 
-  const q54 = form
+  // BLOCO 16: PERFIL
+
+  form.addPageBreakItem().setTitle("Bloco 16: Perfil");
+
+  // Q37
+  const q37 = form
     .addMultipleChoiceItem()
-    .setTitle("54. Como se sente (novamente) em relação ao uso do seu tempo?");
-  q54.setChoices(
-    choices(q54, [
-      "Muito Insatisfeita",
-      "Insatisfeita",
-      "Nem satisfeita",
-      "Satisfeita",
-      "Muito satisfeita",
+    .setTitle("37. Qual é o seu estado civil?")
+    .setRequired(true);
+  q37.setChoices(
+    choices(q37, [
+      "Solteira",
+      "Casada",
+      "Divorciada",
+      "Separada",
+      "Viúva",
+      "União estável",
+      "NS (não sabe)",
+      "NR (não respondeu)",
     ]),
   );
 
-  const q56 = form
-    .addCheckboxItem()
-    .setTitle(
-      "56. Você considera que alguma área da sua vida está sendo negligenciada? (Até 3)",
-    );
-  q56.setChoiceValues([
-    "Trabalho",
-    "Lazer",
-    "Cuidados Pessoais",
-    "Cuidados De Terceiros",
-    "Trajeto/Deslocamento",
-    "Família",
-    "Relacionamento Afetivo",
-    "Atividade Física",
-  ]);
-  q56.setValidation(
-    FormApp.createCheckboxValidation().requireSelectAtMost(3).build(),
+  // Q38
+  const q38 = form
+    .addMultipleChoiceItem()
+    .setTitle("38. Qual é a sua orientação sexual?")
+    .setRequired(true);
+  q38.setChoices(
+    choices(q38, [
+      "Heterossexual",
+      "Lésbica",
+      "Bi-sexual",
+      "Assexual",
+      "Pansexual",
+      "NS (não sabe)",
+      "NR (não respondeu)",
+    ]),
   );
 
-  const q57 = form
+  // Q39
+  const q39 = form
+    .addMultipleChoiceItem()
+    .setTitle("39. Qual o curso mais elevado que concluiu anteriormente?")
+    .setRequired(true);
+  q39.setChoices(
+    choices(q39, [
+      "Classes de alfabetização",
+      "Primário",
+      "Ensino fundamental",
+      "Ensino Médio",
+      "Ensino Técnico",
+      "Superior de graduação",
+      "Especialização de nível superior",
+      "Mestrado",
+      "Doutorado",
+      "NS (não sabe)",
+      "NR (não respondeu)",
+    ]),
+  );
+
+  // Q40
+  const q40 = form
+    .addMultipleChoiceItem()
+    .setTitle("40. Qual é a sua religião?")
+    .setHelpText(
+      '"Leia devagar na ordem. Não pergunte diretamente "qual é sua religião?"',
+    )
+    .setRequired(true);
+  q40.setChoices(
+    choices(q40, [
+      "Católica",
+      "Evangélica/Neo-pentecostal",
+      "Protestante tradicional",
+      "Espírita / Kardecista / Espiritualista",
+      "Umbanda",
+      "Candomblé / outras afro-brasileiras",
+      "Não tem religião",
+      "Agnóstico",
+      "Ateu / não acredita em Deus",
+    ]),
+  );
+  q40.showOtherOption(true); // campo aberto para "Outra religião. Qual?"
+
+  // Q41
+  const q41 = form
     .addMultipleChoiceItem()
     .setTitle(
-      "57. Em relação às suas preferências políticas, você se considera:",
-    );
-  q57.setChoices(
-    choices(q57, [
+      "41. Em relação às suas preferências políticas, você se considera:",
+    )
+    .setRequired(true);
+  q41.setChoices(
+    choices(q41, [
       "Extrema esquerda",
       "Esquerda",
       "Centro",
       "Direita",
       "Extrema direita",
-      "NS/NR",
+      "NS (não sabe)",
+      "NR (não respondeu)",
     ]),
   );
 
-  const itens = form.getItems();
-  const totalItens = itens.length;
-
-  form.moveItem(closeForm.getIndex(), totalItens - 1);
-  form.moveItem(headerEncerramento.getIndex(), totalItens - 1);
-
-  Logger.log("Formulário Gerado com Sucesso!");
-  Logger.log("URL de Edição: " + form.getEditUrl());
+  Logger.log("Formulário gerado com sucesso!");
+  Logger.log("URL de edição: " + form.getEditUrl());
 }
